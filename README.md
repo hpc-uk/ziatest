@@ -1,92 +1,128 @@
 # Ziatest
 
+Ziatest is intended to provide a realistic assessment of
+both launch and wireup requirements of MPI applications.
+Accordingly, it exercises both the launch system of the environment
+and the interconnect subsystem in a specified pattern.
+
+Specifically, the test consists of the following steps:
+
+1. record a time stamp for when the test started -
+   this is passed to rank=0 upon launch
+
+2. launch a 100MB executable on a specified number of processes on each node
+
+3. each process executes MPI_Init
+
+4. each process on an odd-numbered node
+   (designated the "originator" for purposes of this description)
+   sends a one-byte message to the process with the same local rank
+   on the even-numbered node above it -
+   i.e., a process on node N sends to a process on node N+1, where N is odd.
+
+5. the receiving process answers the message with a one-byte message
+   sent back to the original sender. In other words, the test identifies
+   pairs of nodes, and then the processes with the same local rank on each
+   pair of nodes exchange a one-byte message.
+
+6. each originator records the time that the reply is received,
+   and then enters a call to MPI_Gather.
+   This allows all the time stamps to be collected by the rank=0 process
+
+7. once all the times stamps have been collected,
+   the rank=0 process searches them to find the latest time.
+   This marks the ending time of the benchmark.
+   The start time is then subtracted from this
+   to generate the final time to execute the benchmark.
+
+Thus, the benchmark seeks to measure
+not just the time required to spawn processes on remote nodes,
+but also the time required by the interconnect
+to form inter-process connections capable of communicating.
 
 
-## Getting started
+# Installation
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+Ziatest has no software prerequisites besides a  MPI library,
+This test is included in the OpenMPI developers code base
+and was distributed in the OpenMPI 1.5.0 release,
+but there is no dependence on OpenMPI;
+other MPI implementations can be used with little or no modificaton.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+To install the benchmark,
+you will need to compile both the ziatest.c and ziaprobe.c programs.
+A very simple Makefile is provided.
+The ziatest.c program simply obtains the initial time stamp,
+and then executes the "mpirun" (or equivalent) command
+to initiate the actual benchmark.
 
-## Add your files
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+#Execution
 
+With the code compiled, use the command:
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/NERSC/N10-benchmarks/ziatest.git
-git branch -M main
-git push -uf origin main
+./ziatest <N> "<mpirun_command> <mpirun_options> "
 ```
+where `N` is the number of processes to be launched on each node,
+and `mpirun_command` is the command used to launch parallel jobs (e.g. mpirun),
+and `mpirun_options` describes the distribution of processes among nodes.
+The syntax for `mpirun_options` differs between MPI implmentations
+(or resource managers) and should be modified as needed.
 
-## Integrate with your tools
+The `run_ziatest.sh` script demonstates use of
+the [SLURM](https://slurm.schedmd.com/) `srun` command
+to launch 8 processes per node on 6 nodes (48 processes total).
+```
+./ziatest 8 "srun --ntasks 48 --ntasks-per-node "
+```
+Notice that tasks_per_node is provided as the first argument to ziatest,
+but not within the srun command;
+Ziatest appends the tasks_per_node value to the srun command.
+Thus, the option that sets the number of tasks per node
+(i.e. `--ntasks-per-node`) should be listed last in `mpirun_options`.
 
-- [ ] [Set up project integrations](https://gitlab.com/NERSC/N10-benchmarks/ziatest/-/settings/integrations)
+There is no requirement on the number of nodes,
+nor that there be an even number of nodes.
+In the case of an odd number of nodes,
+the test will automatically "wrap" the test
+by requiring the last node to communicate with node=0.
+Note that this can invoke a penalty in performance
+as the processes on node=0 will have to respond twice to messages.
+Thus, the test does tend to favor even numbers of nodes.
+The required behavior is to launch
+a constant number of processes on each node.
 
-## Collaborate with your team
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Automatically merge when pipeline succeeds](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+#Output
 
-## Test and Deploy
+The output will appear in the following format:
+```
+> ./ziatest 6 "srun --ntasks 36 --ntasks-per-node "
+srun 	  --ntasks 36 	  --ntasks-per-node  6 ./ziaprobe 1682721242 912291 6
+Time test was completed in   0:04 min:sec
+Slowest rank: 11
+```
+The command used to launch `ziaprobe` is printed,
+followed by the time required to execute the test,
+then the rank that reported the slowest time.
+The time will be in milliseconds if the test tool less than 1 second to execute,
+or min:sec if the test took longer than 1 second.
+The slowest rank information is provided
+in the hopes it may prove of some diagnostic value.
 
-Use the built-in continuous integration in GitLab.
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+#Reporting
+Benchmark results should include
+the job configuration (node type, node count, processes per node)
+and a projection of the "Time test was completed in".
 
-***
+For the electronic submission,
+include all the source and makefiles used to build on the target platform
+and input files and runscripts.
+Include all standard output files.
 
-# Editing this README
+#Copyright
+Copyright (c) 2008 Los Alamos National Security, LLC.  All rights reserved.
+Modified by Sue Kelly, Sandia National Laboratories, January 2010, January 2012.
+Modified by Brian Austin, Lawerence Berkeley National Laboratory, April 2023.
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
