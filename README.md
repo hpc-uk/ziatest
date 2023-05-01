@@ -57,7 +57,7 @@ and then executes the "mpirun" (or equivalent) command
 to initiate the actual benchmark.
 
 
-#Execution
+# Execution
 
 With the code compiled, use the command:
 ```
@@ -93,7 +93,7 @@ The required behavior is to launch
 a constant number of processes on each node.
 
 
-#Output
+# Output
 
 The output will appear in the following format:
 ```
@@ -105,13 +105,14 @@ Slowest rank: 11
 The command used to launch `ziaprobe` is printed,
 followed by the time required to execute the test,
 then the rank that reported the slowest time.
-The time will be in milliseconds if the test tool less than 1 second to execute,
-or min:sec if the test took longer than 1 second.
+The time will be in `milliseconds` if the test tool less than 1 second to execute,
+or `min:sec` if the test took longer than 1 second.
 The slowest rank information is provided
 in the hopes it may prove of some diagnostic value.
 
 
-#Reporting
+# Reporting
+
 Benchmark results should include
 the job configuration (node type, node count, processes per node)
 and a projection of the "Time test was completed in".
@@ -121,7 +122,7 @@ include all the source and makefiles used to build on the target platform
 and input files and runscripts.
 Include all standard output files.
 
-#Copyright
+# Copyright
 Copyright (c) 2008 Los Alamos National Security, LLC.  All rights reserved.
 Modified by Sue Kelly, Sandia National Laboratories, January 2010, January 2012.
 Modified by Brian Austin, Lawerence Berkeley National Laboratory, April 2023.
