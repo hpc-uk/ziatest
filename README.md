@@ -41,13 +41,13 @@ but also the time required by the interconnect
 to form inter-process connections capable of communicating.
 
 
-# Installation
+## Installation
 
-Ziatest has no software prerequisites besides a  MPI library,
+Ziatest has no software prerequisites besides a  MPI library.
 This test is included in the OpenMPI developers code base
 and was distributed in the OpenMPI 1.5.0 release,
 but there is no dependence on OpenMPI;
-other MPI implementations can be used with little or no modificaton.
+other MPI implementations can be used with little or no modification.
 
 To install the benchmark,
 you will need to compile both the ziatest.c and ziaprobe.c programs.
@@ -57,7 +57,11 @@ and then executes the "mpirun" (or equivalent) command
 to initiate the actual benchmark.
 
 
+<<<<<<< Updated upstream
 # Execution
+=======
+## Execution
+>>>>>>> Stashed changes
 
 With the code compiled, use the command:
 ```
@@ -93,7 +97,11 @@ The required behavior is to launch
 a constant number of processes on each node.
 
 
+<<<<<<< Updated upstream
 # Output
+=======
+## Output
+>>>>>>> Stashed changes
 
 The output will appear in the following format:
 ```
@@ -110,9 +118,23 @@ or `min:sec` if the test took longer than 1 second.
 The slowest rank information is provided
 in the hopes it may prove of some diagnostic value.
 
+## Required Results
 
+The purpose of Ziatest is to measure the time needed to launch full-system jobs,
+and should be run using at least 99.5% of the compute nodes,
+and at least MPI rank per NIC.
+For systems composed of multiple types of compute nodes,
+results should be provided separately for each node type.
+It is not necessary to provide results for Ziatest jobs that span multiple node types.
+
+
+## Reporting
+
+<<<<<<< Updated upstream
 # Reporting
 
+=======
+>>>>>>> Stashed changes
 Benchmark results should include
 the job configuration (node type, node count, processes per node)
 and a projection of the "Time test was completed in".
@@ -122,8 +144,14 @@ include all the source and makefiles used to build on the target platform
 and input files and runscripts.
 Include all standard output files.
 
+<<<<<<< Updated upstream
 # Copyright
 Copyright (c) 2008 Los Alamos National Security, LLC.  All rights reserved.
 Modified by Sue Kelly, Sandia National Laboratories, January 2010, January 2012.
+=======
+## Copyright
+Copyright (c) 2008 Los Alamos National Security, LLC.  All rights reserved.<br>
+Modified by Sue Kelly, Sandia National Laboratories, January 2010, January 2012.<br>
+>>>>>>> Stashed changes
 Modified by Brian Austin, Lawerence Berkeley National Laboratory, April 2023.
 
