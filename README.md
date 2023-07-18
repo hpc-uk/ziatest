@@ -111,7 +111,6 @@ The slowest rank information is provided
 in the hopes it may prove of some diagnostic value.
 
 ## Required Results
-<<<<<<< Updated upstream
 
 The purpose of Ziatest is to measure the time needed to launch full-system jobs,
 and should be run using at least 99.5% of the compute nodes,
