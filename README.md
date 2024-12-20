@@ -114,7 +114,8 @@ in the hopes it may prove of some diagnostic value.
 
 The purpose of Ziatest is to measure the time needed to launch full-system jobs,
 and should be run using at least 99.5% of the compute nodes,
-and at least MPI rank per NIC.
+and at least 1 MPI rank per NIC.
+
 For systems composed of multiple types of compute nodes,
 results should be provided separately for each node type.
 It is not necessary to provide results for Ziatest jobs that span multiple node types.
@@ -122,20 +123,9 @@ It is not necessary to provide results for Ziatest jobs that span multiple node 
 
 ## Reporting
 
-The purpose of Ziatest is to measure the time needed to launch full-system jobs,
-and should be run using at least 99.5% of the compute nodes,
-and at least MPI rank per NIC.
-For systems composed of multiple types of compute nodes,
-results should be provided separately for each node type.
-It is not necessary to provide results for Ziatest jobs
-that span multiple node types.
-
-
-## Reporting
-
 Benchmark results should include
 the job configuration (node type, node count, processes per node)
-and a projection of the "Time test was completed in".
+and the "Time test was completed in".
 
 For the electronic submission,
 include all the source and makefiles used to build on the target platform
@@ -143,8 +133,8 @@ and input files and runscripts.
 Include all standard output files.
 
 
-
 ## Copyright
+
 Copyright (c) 2008 Los Alamos National Security, LLC.  All rights reserved.<br>
 Modified by Sue Kelly, Sandia National Laboratories, January 2010, January 2012.<br>
 Modified by Brian Austin, Lawerence Berkeley National Laboratory, April 2023.
